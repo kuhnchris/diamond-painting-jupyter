@@ -1,0 +1,7 @@
+*.webp
+*.jpg
+*.png
+venv/
+.vscode/
+.ipynb_*/
+
