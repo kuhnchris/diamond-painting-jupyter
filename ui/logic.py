@@ -10,7 +10,7 @@ srcImg = None
 
 def loadImage(path, maxSize):
     srcImg = Image.open(path)
-    if srcImg.width > maxSize:
+    if srcImg.width > maxSize and maxSize > 0:
         srcImg = srcImg.resize((maxSize, int(maxSize*(srcImg.height/srcImg.width))),0)
     return srcImg
 
@@ -60,6 +60,18 @@ def set_image_dpi_inMemory(image):
     #image_resize.save(bio, format="PNG")
     #return bio.getvalue()
 
+def generateLetterImage(letter, color, roundShape, diamondSize,font):
+    newpix = Image.new('RGBA',(diamondSize,diamondSize))
+    newpixdc = ImageDraw.Draw(newpix)
+    newpixdc.rectangle((0,0,diamondSize,diamondSize), fill=(255,255,255))
+    invcolor = (255-color[0],255-color[1],255-color[2])
+    if roundShape == True:
+        newpixdc.ellipse(((0,0),(diamondSize,diamondSize)),(color[0],color[1],color[2]),(0,0,0))
+    else:
+        newpixdc.rectangle(((0,0),(diamondSize,diamondSize)),(color[0],color[1],color[2]),(0,0,0))
+    newpixdc.text((0+(diamondSize/2),0+(diamondSize/2)),letter,invcolor,font=font,anchor="mm")
+    return newpix
+
 def generateDiamondPainting(piximg, alphabet, alphaColor, font, diamondSize, roundDiamonds):
     pixarr = np.array(piximg)
     pixpal = {}
@@ -70,6 +82,7 @@ def generateDiamondPainting(piximg, alphabet, alphaColor, font, diamondSize, rou
     newpixdc = ImageDraw.Draw(newpix)
     newpixdc.rectangle((0,0,piximg.size[0]*diamondSize,piximg.size[1]*diamondSize), fill=(255,255,255))
 
+    alphabetPregen = {}
     xcnt = 0
     ycnt = 0
     for x in pixarr:
@@ -86,14 +99,15 @@ def generateDiamondPainting(piximg, alphabet, alphaColor, font, diamondSize, rou
                 out = pixpal[colour]
             out = alphabet[int(out)]
 
-            if ( a[3] != 0 ) and ( colStr != alphaColor ):
-                invcolor = (255-a[0],255-a[1],255-a[2])
-                if roundDiamonds == True:
-                    newpixdc.ellipse(((xcnt*diamondSize,ycnt*diamondSize),(xcnt*diamondSize+(diamondSize),ycnt*diamondSize+diamondSize)),(a[0],a[1],a[2]),(0,0,0))
-                else:
-                    newpixdc.rectangle(((xcnt*diamondSize,ycnt*diamondSize),(xcnt*diamondSize+(diamondSize),ycnt*diamondSize+diamondSize)),(a[0],a[1],a[2]),(0,0,0))
-                newpixdc.text((xcnt*diamondSize+(diamondSize/2),ycnt*diamondSize+(diamondSize/2)),out,invcolor,font=font,anchor="mm")
+            if out in alphabetPregen:
+                outImg = alphabetPregen[out]
+            else:
+                alphabetPregen[out] = generateLetterImage(out,a,roundDiamonds,diamondSize,font)
+                outImg = alphabetPregen[out]
 
+            if ( a[3] != 0 ) and ( colStr != alphaColor ):
+                #newpix.paste(outImg,box=(xcnt*diamondSize,ycnt*diamondSize,xcnt*diamondSize+diamondSize,ycnt*diamondSize+diamondSize))
+                newpix.paste(outImg,box=(xcnt*diamondSize,ycnt*diamondSize))
 
             xcnt = xcnt + 1
         ycnt = ycnt + 1

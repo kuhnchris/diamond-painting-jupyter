@@ -1,4 +1,5 @@
 import string
+import traceback
 import PySimpleGUI as sg
 import sys
 from io import BytesIO
@@ -13,21 +14,22 @@ maxSize = 600
 srcImg = None
 scaledImg = None
 selectedFnt = None
-window = sg.Window(title="Diamondificator", layout=ui_screens.layout, margins=(5, 5))
+window = sg.Window(title="Diamondificator",
+                   layout=ui_screens.layout, margins=(5, 5))
 while True:
     try:
-        #set variables
+        # set variables
         forceRepixel = False
 
         # wait for event
         evt, vals = window.read()
         logging.debug(("Event: %s - Values: %s" % (evt, vals)))
-        
+
         # close event
         if evt == "Exit" or evt == sg.WIN_CLOSED:
             logging.info("Quitting...")
             break
- 
+
         # update texts beside sliders
         window["fontSizeDisplay"].update(value=int(vals['fontSize']))
         window["diamondSizeDisplay"].update(value=int(vals['diamondSize']))
@@ -40,18 +42,33 @@ while True:
                 if f.name == vals["fontSelect"]:
                     window["fontName"].update(f.fname)
                     vals["fontName"] = f.fname
- 
+
         # react on image load
-        if evt == "srcImg":
+        if (evt == "srcImg" or evt == "srcImgResize" or evt == "srcImgResizePercent" or evt == "srcImgResizeIgnoreRatio" or evt == "srcImgCustomWidth" or evt == "srcImgCustomHeight" or evt == "srcImgCustomSizeRation" or evt == "rModeInput") and vals["srcImg"] != "":
             logging.info("Loading image: %s " % vals["srcImg"])
-            srcImg = logic.loadImage(vals["srcImg"],maxSize)
+            srcImg = logic.loadImage(vals["srcImg"], -1)
             if vals["alwaysRGB"]:
                 srcImg = srcImg.convert("RGB")
+            if vals["srcImgResize"]:
+                resizeFac = ui_screens.ui_constants.srcResizeSizes[vals["srcImgResizePercent"]]
+                srcImg = srcImg.resize((int(srcImg.width*resizeFac), int(srcImg.height * resizeFac)), ui_screens.ui_constants.rModeValues[vals["rModeInput"]])
             forceRepixel = True
+            window["srcImgWidth"].update(value=srcImg.width)
+            window["srcImgHeight"].update(value=srcImg.height)
+            window["srcImgSizeRatio"].update(
+                value=srcImg.width / srcImg.height)
+            frac = (srcImg.width / srcImg.height).as_integer_ratio()
+            window["srcImgSizeRatioFraction"].update(
+                value=str(frac[0])+"/"+str(frac[1]))
 
-        # font preview        
+            bio = BytesIO()
+            srcImg.save(bio, format="PNG")
+            window["previewImgInput"].update(data=bio.getvalue())
+
+        # font preview
         if evt == "fontSize" or evt == "fontSelect":
-            selectedFnt = ImageFont.truetype(vals["fontName"], int(vals["fontSize"]))
+            selectedFnt = ImageFont.truetype(
+                vals["fontName"], int(vals["fontSize"]))
             bio = BytesIO()
             logic.generateFontPreview(selectedFnt).save(bio, format="PNG")
             window["previewText"].update(data=bio.getvalue())
@@ -61,23 +78,29 @@ while True:
             logging.info("Source Image is empty, bailing...")
             continue
         
+        "-- dont touch srcImg from here on!"
+
         # convert RGBA->RGB
         if evt == "alwaysRGB":
             logging.info("RGB(A) flag changed, processing...")
             if vals["alwaysRGB"]:
-                srcImg = srcImg.convert("RGB")
+                pixelImg = srcImg.convert("RGB")
             else:
-                srcImg = logic.loadImage(vals["srcImg"],maxSize)
+                pixelImg = srcImg
             forceRepixel = True
-        
+
         # resize canvas
         if evt == "pixelSize" or evt == "rMode" or forceRepixel == True:
-            scaledImg = logic.pixelate(srcImg, int(vals["pixelSize"]),ui_screens.ui_constants.rModeValues[vals["rMode"]])
+            scaledImg = logic.pixelate(pixelImg, int(
+                vals["pixelSize"]), ui_screens.ui_constants.rModeValues[vals["rMode"]])
             forceRepixel = False
 
-        img = logic.convertImage(scaledImg,ui_screens.ui_constants.qModeValues[vals["qMode"]],int(vals["colorAmount"]))        
+        
+        img = logic.convertImage(
+            scaledImg, ui_screens.ui_constants.qModeValues[vals["qMode"]], int(vals["colorAmount"]))
         if evt == "generate":
-            img = logic.generateDiamondPainting(img,vals["diamondAlphabet"],vals["alphaValue"],selectedFnt,int(vals["diamondSize"]),vals["diamondShape"]=="Round")
+            img = logic.generateDiamondPainting(img, vals["diamondAlphabet"], vals["alphaValue"], selectedFnt, int(
+                vals["diamondSize"]), vals["diamondShape"] == "Round")
 
         bio = BytesIO()
         img.save(bio, format="PNG")
@@ -85,7 +108,8 @@ while True:
         window["alphaValue"].update(values=logic.possibleColorValuesForAlpha)
 
     except Exception as e:
-        print(sys.exc_info()[0])
+        traceback.print_tb(sys.exc_info()[2])
+        print(e)
         sg.PopupQuickMessage(e)
 
 window.close()

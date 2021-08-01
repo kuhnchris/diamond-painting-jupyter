@@ -19,6 +19,9 @@ left_column = [
         sg.In(enable_events=False, key="srcImgHeight", size=(4,1), disabled=True),
         sg.Text("/",size=(1,1)),
         sg.In(enable_events=False, key="srcImgSizeRatio", size=(6,1), disabled=True),
+        sg.Text("(",size=(1,1)),
+        sg.In(enable_events=False, key="srcImgSizeRatioFraction", size=(6,1), disabled=True),
+        sg.Text(")",size=(1,1)),
     ],
     [
         sg.Text("Resize?", size=(25, 1)),
