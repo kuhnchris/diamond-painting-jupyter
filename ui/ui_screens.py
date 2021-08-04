@@ -87,11 +87,15 @@ left_column_pageDGen = [
     [sg.Text("Usable characters", size=(25, 1)),
      sg.In(enable_events=True, key="diamondAlphabet",
            default_text="abcdefghijklmnopqrstuvwxyz1234567890!§$%&/()#+\\\"-.:"), ],
-    [sg.Text("Font Name", size=(25, 1)),
+    [sg.Text("Font File", size=(25, 1)),
      sg.In(enable_events=True, key="fontName",
            default_text="NotoSans-Black.ttf", disabled=True)],
-    [sg.Text("Font", size=(25, 1)),
+    [sg.Text("Font Family", size=(25, 1)),
      sg.DropDown(values=ui_constants.fontNames, enable_events=True, key="fontSelect")],
+    [sg.Text("Font Variant", size=(25, 1)),
+     sg.DropDown(values=ui_constants.fontVariants, enable_events=True, key="fontVariant"
+     , size=(25, 1))],
+
     [sg.Text("Font Size", size=(25, 1)),
      sg.Slider((1, 64), 12, orientation="h", enable_events=True,
                key="fontSize", resolution=1, disable_number_display=True),
@@ -108,10 +112,18 @@ left_column_pageDGen = [
     [sg.Button(button_text="Generate", enable_events=True, key='generate')]
 ]
 
+left_column_pageTable = [
+
+]
+left_column_pageCompose = [
+
+]
 
 tab1_left = sg.Tab("Input", left_column)
 tab3_left = sg.Tab("Pixelization", left_column_pix)
 tab2_left = sg.Tab("Processing", left_column_pageDGen)
+tab4_left = sg.Tab("Color table", left_column_pageTable)
+tab5_left = sg.Tab("Composition", left_column_pageCompose)
 
 right_column_in = [
     [sg.Image(key="previewImgInput")],
@@ -125,18 +137,27 @@ right_column_dia = [
     [sg.Image(key="previewImgDiamond")],
 ]
 
+right_column_tab = [
+    [sg.Image(key="previewImgTable")],
+]
+
+right_column_com = [
+    [sg.Image(key="previewImgComposition")],
+]
 tab1_right = sg.Tab("Preview (input)", right_column_in)
 tab2_right = sg.Tab("Preview (pixel)", right_column_pix)
 tab3_right = sg.Tab("Preview (diamonds)", right_column_dia)
+tab4_right = sg.Tab("Preview (table)", right_column_tab)
+tab5_right = sg.Tab("Preview (composition)", right_column_com)
 
 menu = [['&File',['&Open','&Save','---','E&xit']],['&Help','&About']]
 
 layout = [
     [
         sg.Menu(menu),
-        sg.Column([[sg.TabGroup([[tab1_left, tab3_left, tab2_left]])]],
+        sg.Column([[sg.TabGroup([[tab1_left, tab3_left, tab2_left, tab4_left, tab5_left]])]],
                   size=(650, 650), expand_y=True),
         sg.VSeperator(),
-        sg.Column([[sg.TabGroup([[tab1_right,tab2_right, tab3_right]])]], size=(650, 650)),
+        sg.Column([[sg.TabGroup([[tab1_right,tab2_right, tab3_right, tab4_right, tab5_right]])]], size=(650, 650)),
     ]
 ]

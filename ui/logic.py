@@ -71,10 +71,13 @@ def generateLetterImage(letter, color, roundShape, diamondSize,font):
         newpixdc.rectangle(((0,0),(diamondSize,diamondSize)),(color[0],color[1],color[2]),(0,0,0))
     newpixdc.text((0+(diamondSize/2),0+(diamondSize/2)),letter,invcolor,font=font,anchor="mm")
     return newpix
-
+    
+pixpal = {}
+alphabetPregen = {}
 def generateDiamondPainting(piximg, alphabet, alphaColor, font, diamondSize, roundDiamonds):
     pixarr = np.array(piximg)
-    pixpal = {}
+    #pixpal = {}
+    pixpal.clear()
     pixidx = 0
     
     newpix = Image.new('RGB',(piximg.size[0]*diamondSize,piximg.size[1]*diamondSize))
@@ -82,7 +85,8 @@ def generateDiamondPainting(piximg, alphabet, alphaColor, font, diamondSize, rou
     newpixdc = ImageDraw.Draw(newpix)
     newpixdc.rectangle((0,0,piximg.size[0]*diamondSize,piximg.size[1]*diamondSize), fill=(255,255,255))
 
-    alphabetPregen = {}
+    #alphabetPregen = {}
+    alphabetPregen.clear()
     xcnt = 0
     ycnt = 0
     for x in pixarr:
@@ -113,6 +117,55 @@ def generateDiamondPainting(piximg, alphabet, alphaColor, font, diamondSize, rou
         ycnt = ycnt + 1
 
     return set_image_dpi_inMemory(newpix)
+
+def autocrop(image):
+    image_data = np.asarray(image)
+    image_data_bw = image_data.max(axis=2)
+    non_empty_columns = np.where(image_data_bw.min(axis=0)<255)[0]
+    non_empty_rows = np.where(image_data_bw.min(axis=1)<255)[0]
+    cropBox = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
+
+    image_data_new = image_data[cropBox[0]:cropBox[1]+1, cropBox[2]:cropBox[3]+1 , :]
+
+    new_image = Image.fromarray(image_data_new)
+    return new_image
+
+
+def generateTable(fnt, alphabet, diamShapSize):
+    tabDim = (1000,1000)
+    newpix = Image.new('RGBA',tabDim)
+    newpixdc = ImageDraw.Draw(newpix)
+    newpixdc.rectangle((0,0,tabDim[0],tabDim[1]), fill=(255,255,255))
+
+    xWidth = 200
+    xLeft = diamShapSize + 5
+    yPos = 0
+    yHeight = diamShapSize + 5
+
+    newpixdc.rectangle((0,yPos,xWidth,yPos+yHeight),fill=None,outline=(0,0,0))
+    newpixdc.rectangle((0,yPos,xLeft,yPos+yHeight),fill=None,outline=(0,0,0))
+    newpixdc.text((10,10),"@",(0,0,0),font=fnt,anchor="mm")
+    newpixdc.text((xLeft+4,10),"Color Code",(0,0,0),font=fnt,anchor="lm")
+
+    yPos = yPos + yHeight
+    for colour in pixpal:
+        a=(int(colour[0:2],16),int(colour[2:4],16),int(colour[4:6],16))
+        invcolor = (255-a[0],255-a[1],255-a[2])
+        newpixdc.rectangle((0,yPos,xWidth,yPos+yHeight),fill=None,outline=(0,0,0))
+        newpixdc.rectangle((0,yPos,xLeft,yPos+yHeight),fill="#"+colour,outline=(0,0,0))
+        #newpixdc.text((10,yPos+yHeight/2),pixlit[int(pixpal[colour])],invcolor,font=fnt,anchor="mm")
+
+        out = pixpal[colour]
+        out = alphabet[int(out)]
+
+        if out in alphabetPregen:
+            outImg = alphabetPregen[out]
+        newpix.paste(outImg,box=(0,int(yPos)))
+
+        newpixdc.text((xLeft+4,yPos+yHeight/2),"#"+colour,(0,0,0),font=fnt,anchor="lm")
+        yPos = yPos + yHeight
+    newpix = autocrop(newpix)
+    return newpix
 
 def generateFontPreview(font):
     newpix = Image.new('RGB',(100,40))

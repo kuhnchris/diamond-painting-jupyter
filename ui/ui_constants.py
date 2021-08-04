@@ -18,13 +18,16 @@ rModeValues = {
     "Lanczos": Image.LANCZOS
 }
 
-file_types = [("PNG (*.png)", "*.png"),
-              ("JPEG (*.jpg)", "*.jpg"),
+file_types = [("Image files", ".png .jpg .jpeg"),
+              ("PNG", "*.png"),
+              ("JPEG", "*.jpg;*.jpeg"),
               ("All files (*.*)", "*.*")]
 
 
 fontNames = list(dict.fromkeys(
     sorted([f.name for f in matplotlib.font_manager.fontManager.ttflist])))
+
+fontVariants = []
 
 srcResizeSizes = {
     "100%": 1,
