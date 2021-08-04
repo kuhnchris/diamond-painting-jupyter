@@ -164,7 +164,7 @@ def generateTable(fnt, alphabet, diamShapSize):
 
         newpixdc.text((xLeft+4,yPos+yHeight/2),"#"+colour,(0,0,0),font=fnt,anchor="lm")
         yPos = yPos + yHeight
-    newpix = autocrop(newpix)
+    newpix = autocrop(newpix.convert("RGB"))
     return newpix
 
 def generateFontPreview(font):

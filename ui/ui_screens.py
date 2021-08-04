@@ -154,7 +154,7 @@ menu = [['&File',['&Open','&Save','---','E&xit']],['&Help','&About']]
 
 layout = [
     [
-        sg.Menu(menu),
+        sg.Menu(menu, key="Menu"),
         sg.Column([[sg.TabGroup([[tab1_left, tab3_left, tab2_left, tab4_left, tab5_left]])]],
                   size=(650, 650), expand_y=True),
         sg.VSeperator(),
