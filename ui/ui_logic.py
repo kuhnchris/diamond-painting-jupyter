@@ -12,6 +12,7 @@ import matplotlib.font_manager
 
 class UIDiamondPainting:
     def __init__(self):
+        self.logic = logic.DiamondPaintingGeneratorLogic()
         self.settings = sg.UserSettings()
         logging.basicConfig(level=logging.DEBUG)
         self.maxSize = 600
@@ -75,7 +76,7 @@ class UIDiamondPainting:
 
     def evt_processInputImg(self):
         logging.info("Loading image: %s " % self.UIValueList["srcImg"])
-        self.srcImg = logic.loadImage(self.UIValueList["srcImg"], -1)
+        self.srcImg = self.logic.loadImage(self.UIValueList["srcImg"], -1)
         if self.UIValueList["alwaysRGB"]:
             self.srcImg = self.srcImg.convert("RGB")
         if self.UIValueList["srcImgResize"]:
@@ -109,32 +110,32 @@ class UIDiamondPainting:
         self.selectedFnt = ImageFont.truetype(
             self.UIValueList["fontName"], int(self.UIValueList["fontSize"]))
         bio = BytesIO()
-        logic.generateFontPreview(self.selectedFnt).save(bio, format="PNG")
+        self.logic.generateFontPreview(self.selectedFnt).save(bio, format="PNG")
         self.window["previewText"].update(data=bio.getvalue())
 
     def evt_processPixelImg(self):
-        self.scaledImg = logic.pixelate(self.pixelImg, int(
+        self.scaledImg = self.logic.pixelate(self.pixelImg, int(
             self.UIValueList["pixelSize"]), ui_screens.ui_constants.rModeValues[self.UIValueList["rMode"]])
         self.forcePixelGen = False
-        self.processedImg = logic.convertImage(
+        self.processedImg = self.logic.convertImage(
             self.scaledImg, ui_screens.ui_constants.qModeValues[self.UIValueList["qMode"]],
             int(self.UIValueList["colorAmount"]))
         bio = BytesIO()
         self.processedImg.save(bio, format="PNG")
         self.window["previewImg"].update(data=bio.getvalue())
-        self.window["alphaValue"].update(values=logic.possibleColorValuesForAlpha)
+        self.window["alphaValue"].update(values=self.logic.possibleColorValuesForAlpha)
 
     def evt_generateDiamondPainting(self):
-        self.diamondImg = logic.generateDiamondPainting(self.processedImg, self.UIValueList["diamondAlphabet"],
-                                                        self.UIValueList["alphaValue"],
-                                                        self.selectedFnt, int(self.UIValueList["diamondSize"]),
-                                                        self.UIValueList["diamondShape"] == "Round")
+        self.diamondImg = self.logic.generateDiamondPainting(self.processedImg, self.UIValueList["diamondAlphabet"],
+                                                             self.UIValueList["alphaValue"],
+                                                             self.selectedFnt, int(self.UIValueList["diamondSize"]),
+                                                             self.UIValueList["diamondShape"] == "Round")
         bio = BytesIO()
         self.diamondImg.save(bio, format="PNG")
         self.window["previewImgDiamond"].update(data=bio.getvalue())
         self.diamondImg.save("/tmp/diamondPainting.png", format="PNG")
-        self.tableImage = logic.generateTable(self.selectedFnt, self.UIValueList["diamondAlphabet"],
-                                              int(self.UIValueList["diamondSize"]))
+        self.tableImage = self.logic.generateTable(self.selectedFnt, self.UIValueList["diamondAlphabet"],
+                                                   int(self.UIValueList["diamondSize"]))
         bio = BytesIO()
         self.tableImage.save(bio, format="PNG")
         self.window["previewImgTable"].update(data=bio.getvalue())
