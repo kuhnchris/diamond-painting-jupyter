@@ -1,4 +1,4 @@
-from PIL import Image, ImageFilter, ImageDraw, ImageDraw2, ImageFont, ImageOps
+from PIL import Image
 
 
 import matplotlib.font_manager

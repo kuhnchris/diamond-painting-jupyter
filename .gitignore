@@ -8,3 +8,5 @@ venv/
 .vscode/
 .ipynb_*/
 Pillow/
+.idea/
+Pipfile.lock
