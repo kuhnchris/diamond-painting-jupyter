@@ -62,6 +62,7 @@ class UIDiamondPainting:
         self.window["colorAmountDisplay"].update(value=int(self.UIValueList['colorAmount']))
 
     def evt_updateFont(self):
+        self.variantList.clear()
         for f in matplotlib.font_manager.fontManager.ttflist:
             if f.name == self.UIValueList["fontSelect"]:
                 self.window["fontName"].update(f.fname)

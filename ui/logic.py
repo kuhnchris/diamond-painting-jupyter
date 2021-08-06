@@ -37,9 +37,9 @@ class DiamondPaintingGeneratorLogic:
 
     @staticmethod
     def generateLetterImage(letter, color, round_shape, diamond_size, font):
-        output_picture = Image.new('RGBA', (diamond_size, diamond_size))
+        output_picture = Image.new('RGBA', (diamond_size+2, diamond_size+2))
         output_picture_drawing_context = ImageDraw.Draw(output_picture)
-        output_picture_drawing_context.rectangle((0, 0, diamond_size, diamond_size), fill=(255, 255, 255, 0))
+        output_picture_drawing_context.rectangle((0, 0, diamond_size+2, diamond_size+2), fill=(255, 255, 255, 0))
         inverted_color = (255 - color[0], 255 - color[1], 255 - color[2])
         if round_shape:
             output_picture_drawing_context.ellipse(((0, 0), (diamond_size, diamond_size)),
@@ -117,13 +117,13 @@ class DiamondPaintingGeneratorLogic:
         new_image_draw_context.rectangle((0, 0, tab_dim[0], tab_dim[1]), fill=(255, 255, 255))
 
         x_width = 200
-        x_left = diamond_shape_size + 5
+        x_left = diamond_shape_size + 6
         y_pos = 0
-        y_height = diamond_shape_size + 5
+        y_height = diamond_shape_size + 6
 
         new_image_draw_context.rectangle((0, y_pos, x_width, y_pos + y_height), fill=None, outline=(0, 0, 0))
         new_image_draw_context.rectangle((0, y_pos, x_left, y_pos + y_height), fill=None, outline=(0, 0, 0))
-        new_image_draw_context.text((10, 10), "@", (0, 0, 0), font=fnt, anchor="mm")
+        new_image_draw_context.text((int(x_left/2), int(y_height/2)), "@", (0, 0, 0), font=fnt, anchor="mm")
         new_image_draw_context.text((x_left + 4, 10), "Color Code", (0, 0, 0), font=fnt, anchor="lm")
 
         y_pos = y_pos + y_height
@@ -138,13 +138,37 @@ class DiamondPaintingGeneratorLogic:
             out_img = None
             if out in self.alphabetImagesPreGenerated:
                 out_img = self.alphabetImagesPreGenerated[out]
-            new_image.paste(out_img, box=(0, int(y_pos)), mask=out_img)
+            new_image.paste(out_img, box=(3, int(y_pos)+3), mask=out_img)
 
             new_image_draw_context.text((x_left + 4, y_pos + y_height / 2),
                                         "#" + colour, (0, 0, 0), font=fnt, anchor="lm")
             y_pos = y_pos + y_height
         new_image = self.autocrop(new_image.convert("RGB"))
         return new_image
+
+#
+# const getLuminanace = (values) => {
+#   const rgb = values.map((v) => {
+#     const val = v / 255;
+#     return val <= 0.03928 ? val / 12.92 : ((val + 0.055) / 1.055) ** 2.4;
+#   });
+#   return Number((0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]).toFixed(3));
+# };
+#
+# const getContrastRatio = (colorA, colorB) => {
+#   const lumA = getLuminanace(colorA);
+#   const lumB = getLuminanace(colorB);
+#
+#   return (Math.max(lumA, lumB) + 0.05) / (Math.min(lumA, lumB) + 0.05);
+# };
+#
+# // usage:
+# const back_color = [255,255,255]; //white
+# const text_color = [255,255,0]; //yellow
+#
+# getContrastRatio(back_color, text_color); // 1.0736196319018405
+#
+#
 
     @staticmethod
     def generateFontPreview(font):
