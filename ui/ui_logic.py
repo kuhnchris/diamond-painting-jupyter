@@ -3,6 +3,8 @@ import traceback
 import PySimpleGUI as sg
 import sys
 from io import BytesIO
+
+from numpy.core.fromnumeric import resize
 import ui_screens
 import logic
 import logging
@@ -29,13 +31,15 @@ class UIDiamondPainting:
         self.evt = ""
 
         self.window = sg.Window(title="Diamond Painting Generator",
-                                layout=ui_screens.layout, margins=(5, 5))
+                                layout=ui_screens.layout, margins=(5, 5),
+                                resizable=True)
 
-        self.ignoreImportUIFields = ["Browse", "Menu", "0", "2", "1", "3"]
+        self.ignoreImportUIFields = ["Browse", "Menu", "0", "2", "1", "3", "tabLeft", "tabRight"]
 
     def evt_load(self):
         filename_load = sg.popup_get_file('Choose file to load', 'Load configuration',
-                                          default_extension='*.json', no_window=True)
+                                          default_extension='*.diapac', no_window=True,
+                                          file_types=(("Diamond Painting Configuration", ".diapac"),))
         json_loaded_values = json.load(open(filename_load, 'r'))
         self.UIValueList = json_loaded_values
         for val in self.UIValueList:
@@ -46,13 +50,20 @@ class UIDiamondPainting:
                 print("ignoring ", val)
 
     def evt_save(self):
-        save_window = sg.Window(title="Save as...", layout=[[sg.FileSaveAs(enable_events=True, key="SavePath")]])
-        evt2, value_list_save_window = save_window.read()
-        save_window.close()
-        print("Save dialog exited: ", evt2, " - ", value_list_save_window)
-        if evt2 == "SavePath":
-            json.dump(self.UIValueList, open(value_list_save_window["SavePath"], 'w'))
-            sg.Popup("Saving was successful.")
+        filename_save = sg.popup_get_file('Choose file to save', 'Save configuration',
+                                          default_extension='*.diapac', no_window=True, save_as=True,
+                                          file_types=(("Diamond Painting Configuration", ".diapac"),))
+        
+        #save_window = sg.Window(title="Save as...", layout=[[sg.FileSaveAs(enable_events=True, key="SavePath")]])
+        #evt2, value_list_save_window = save_window.read()
+        #save_window.close()
+        #print("Save dialog exited: ", evt2, " - ", value_list_save_window)
+        #if evt2 == "SavePath":
+            #json.dump(self.UIValueList, open(value_list_save_window["SavePath"], 'w'))
+        f = open(filename_save, 'w')
+        json.dump(self.UIValueList, f)
+        f.close()
+        sg.Popup("Saving was successful.")
 
     def evt_updateSliderTexts(self):
         # update texts beside sliders
@@ -150,7 +161,8 @@ class UIDiamondPainting:
         self.window["previewImgDiamond"].update(data=bio.getvalue())
         self.diamondImg.save("/tmp/diamondPainting.png", format="PNG", dpi=(96,96))
         self.tableImage = self.logic.generateTable(self.selectedFnt, self.UIValueList["diamondAlphabet"],
-                                                   int(self.UIValueList["diamondSize"]))
+                                                   int(self.UIValueList["diamondSize"]),
+                                                   self.UIValueList["alphaValue"])
         bio = BytesIO()
         self.tableImage.save(bio, format="PNG")
         self.window["previewImgTable"].update(data=bio.getvalue())

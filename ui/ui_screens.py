@@ -159,6 +159,7 @@ layout = [
         sg.Column([[sg.TabGroup([[tab1_left, tab3_left, tab2_left, tab4_left, tab5_left]],enable_events=True, key="tabLeft")],[sg.Button(button_text="Generate", enable_events=True, key='generate')]],
                   size=(650, 650), expand_y=True),
         sg.VSeperator(),
-        sg.Column([[sg.TabGroup([[tab1_right, tab2_right, tab3_right, tab4_right, tab5_right]],key="tabRight",enable_events=True)]], size=(650, 650)),
+        sg.Column([[sg.TabGroup([[tab1_right, tab2_right, tab3_right, tab4_right, tab5_right]],key="tabRight",enable_events=True)]], size=(650, 650),
+        expand_x=True, expand_y=True),
     ]
 ]

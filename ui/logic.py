@@ -120,7 +120,7 @@ class DiamondPaintingGeneratorLogic:
         new_image = Image.fromarray(image_data_new)
         return new_image
 
-    def generateTable(self, fnt, alphabet, diamond_shape_size):
+    def generateTable(self, fnt, alphabet, diamond_shape_size, alphaColor):
         tab_dim = (1000, 1000)
         new_image = Image.new('RGBA', tab_dim)
         new_image_draw_context = ImageDraw.Draw(new_image)
@@ -136,8 +136,12 @@ class DiamondPaintingGeneratorLogic:
         new_image_draw_context.text((int(x_left/2), int(y_height/2)), "@", (0, 0, 0), font=fnt, anchor="mm")
         new_image_draw_context.text((x_left + 4, int(y_height/2)), "Color Code", (0, 0, 0), font=fnt, anchor="lm")
 
+        
         y_pos = y_pos + y_height
         for colour in self.pixelPalette:
+            if colour == alphaColor[1:7].upper():
+                continue
+
             new_image_draw_context.rectangle((0, y_pos, x_width, y_pos + y_height),
                                              fill=None, outline=(0, 0, 0))
             new_image_draw_context.rectangle((0, y_pos, x_left, y_pos + y_height),

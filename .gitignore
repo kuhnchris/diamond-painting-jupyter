@@ -10,3 +10,4 @@ venv/
 Pillow/
 .idea/
 Pipfile.lock
+*.diapac
