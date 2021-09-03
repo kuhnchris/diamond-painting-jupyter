@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw
 import numpy as np
-
+import wcag_contrast_ratio as contrast
 
 class DiamondPaintingGeneratorLogic:
     def __init__(self):
@@ -36,31 +36,40 @@ class DiamondPaintingGeneratorLogic:
         return image_resize
 
     @staticmethod
-    def generateLetterImage(letter, color, round_shape, diamond_size, font):
+    def generateLetterImage(letter, color, round_shape, diamond_size, font, outlineWidth):
         output_picture = Image.new('RGBA', (diamond_size+2, diamond_size+2))
         output_picture_drawing_context = ImageDraw.Draw(output_picture)
         output_picture_drawing_context.rectangle((0, 0, diamond_size+2, diamond_size+2), fill=(255, 255, 255, 0))
         inverted_color = (255 - color[0], 255 - color[1], 255 - color[2])
+        inv_color_range = (inverted_color[0]/255,inverted_color[1]/255,inverted_color[2]/255)
+        color_range = (color[0]/255,color[1]/255,color[2]/255)
+        if not contrast.passes_AA(contrast.rgb(inv_color_range, color_range)):
+            if not contrast.passes_AA(contrast.rgb((1,1,1), color_range)):
+                inverted_color = (0,0,0)
+            else:
+                inverted_color = (255,255,255)
+
         if round_shape:
             output_picture_drawing_context.ellipse(((0, 0), (diamond_size, diamond_size)),
                                                    (color[0], color[1], color[2]),
-                                                   (0, 0, 0))
+                                                   (0, 0, 0), width=outlineWidth)
         else:
             output_picture_drawing_context.rectangle(((0, 0), (diamond_size, diamond_size)),
-                                                     (color[0], color[1], color[2]), (0, 0, 0))
+                                                     (color[0], color[1], color[2]), (0, 0, 0)
+                                                     , width=outlineWidth)
         output_picture_drawing_context.text((0 + (diamond_size / 2), 0 + (diamond_size / 2)),
                                             letter, inverted_color, font=font, anchor="mm")
         return output_picture
 
-    def generateDiamondPainting(self, input_image, alphabet, alpha_color, font, diamond_size, round_diamonds):
+    def generateDiamondPainting(self, input_image, alphabet, alpha_color, font, diamond_size, round_diamonds, space_between, outlineWidth):
         input_array = np.array(input_image)
         self.pixelPalette.clear()
         input_index = 0
-        new_image = Image.new('RGB', (input_image.size[0] * diamond_size, input_image.size[1] * diamond_size))
+        new_image = Image.new('RGB', (input_image.size[0] * (diamond_size + space_between + 1), input_image.size[1] * (diamond_size + space_between + 1)))
 
         new_image_draw_context = ImageDraw.Draw(new_image)
         new_image_draw_context.rectangle((0, 0,
-                                          input_image.size[0] * diamond_size, input_image.size[1] * diamond_size),
+                                          input_image.size[0] * (diamond_size + space_between + 1), input_image.size[1] * (diamond_size + space_between + 1)),
                                          fill=(255, 255, 255))
 
         self.alphabetImagesPreGenerated.clear()
@@ -86,16 +95,17 @@ class DiamondPaintingGeneratorLogic:
                                                                                     a,
                                                                                     round_diamonds,
                                                                                     diamond_size,
-                                                                                    font)
+                                                                                    font,
+                                                                                    outlineWidth)
                     out_img = self.alphabetImagesPreGenerated[out]
 
                 if (a[3] != 0) and (col_str != alpha_color):
-                    new_image.paste(out_img, box=(x_count * diamond_size, y_count * diamond_size))
+                    new_image.paste(out_img, box=(x_count * (diamond_size + space_between), y_count * (diamond_size + space_between)))
 
                 x_count = x_count + 1
             y_count = y_count + 1
 
-        return self.set_image_dpi_in_memory(new_image)
+        return new_image #self.set_image_dpi_in_memory(new_image)
 
     @staticmethod
     def autocrop(image):
@@ -124,7 +134,7 @@ class DiamondPaintingGeneratorLogic:
         new_image_draw_context.rectangle((0, y_pos, x_width, y_pos + y_height), fill=None, outline=(0, 0, 0))
         new_image_draw_context.rectangle((0, y_pos, x_left, y_pos + y_height), fill=None, outline=(0, 0, 0))
         new_image_draw_context.text((int(x_left/2), int(y_height/2)), "@", (0, 0, 0), font=fnt, anchor="mm")
-        new_image_draw_context.text((x_left + 4, 10), "Color Code", (0, 0, 0), font=fnt, anchor="lm")
+        new_image_draw_context.text((x_left + 4, int(y_height/2)), "Color Code", (0, 0, 0), font=fnt, anchor="lm")
 
         y_pos = y_pos + y_height
         for colour in self.pixelPalette:
@@ -186,10 +196,10 @@ class DiamondPaintingGeneratorLogic:
             (image.size[0] // pixel_size, image.size[1] // pixel_size),
             resize_mode
         )
-        a_image = a_image.resize(
-            (image.size[0] * pixel_size, image.size[1] * pixel_size),
-            resize_mode
-        )
+        #a_image = a_image.resize(
+        #    (image.size[0] * pixel_size, image.size[1] * pixel_size),
+        #    resize_mode
+        #)
         return a_image
 
     def convertImage(self, input_image, quantize_method, color_amount):

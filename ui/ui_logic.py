@@ -60,6 +60,9 @@ class UIDiamondPainting:
         self.window["diamondSizeDisplay"].update(value=int(self.UIValueList['diamondSize']))
         self.window["pixelSizeDisplay"].update(value=int(self.UIValueList['pixelSize']))
         self.window["colorAmountDisplay"].update(value=int(self.UIValueList['colorAmount']))
+        self.window["spaceBetweenDisplay"].update(value=int(self.UIValueList['spaceBetween']))
+        self.window["outlineWidthDisplay"].update(value=int(self.UIValueList['outlineWidth']))
+        
 
     def evt_updateFont(self):
         self.variantList.clear()
@@ -80,12 +83,7 @@ class UIDiamondPainting:
         self.srcImg = self.logic.loadImage(self.UIValueList["srcImg"], -1)
         if self.UIValueList["alwaysRGB"]:
             self.srcImg = self.srcImg.convert("RGB")
-        if self.UIValueList["srcImgResize"]:
-            resize_fac = ui_screens.ui_constants.srcResizeSizes[self.UIValueList["srcImgResizePercent"]]
-            self.srcImg = self.srcImg.resize((int(self.srcImg.width * resize_fac),
-                                              int(self.srcImg.height * resize_fac)),
-                                             ui_screens.ui_constants.rModeValues[self.UIValueList["rModeInput"]])
-        self.forcePixelGen = True
+
         self.window["srcImgWidth"].update(value=self.srcImg.width)
         self.window["srcImgHeight"].update(value=self.srcImg.height)
         self.window["srcImgSizeRatio"].update(
@@ -93,6 +91,19 @@ class UIDiamondPainting:
         image_ratio = (self.srcImg.width / self.srcImg.height).as_integer_ratio()
         self.window["srcImgSizeRatioFraction"].update(
             value=str(image_ratio[0]) + "/" + str(image_ratio[1]))
+
+        if self.UIValueList["srcImgResize"]:
+            resize_fac = ui_screens.ui_constants.srcResizeSizes[self.UIValueList["srcImgResizePercent"]]
+            if self.UIValueList["srcImgResizePercent"] == "Custom":
+                resize_fac = self.UIValueList["srcImgCustomSizeRatio"]
+                target_x = int(self.UIValueList["srcImgCustomWidth"])
+                target_y = int(self.UIValueList["srcImgCustomHeight"])
+            else:
+                target_x = int(self.srcImg.width * resize_fac)
+                target_y = int(self.srcImg.height * resize_fac)
+            self.srcImg = self.srcImg.resize((target_x,target_y),
+                                             ui_screens.ui_constants.rModeValues[self.UIValueList["rModeInput"]])
+        self.forcePixelGen = True
 
         bio = BytesIO()
         self.srcImg.save(bio, format="PNG")
@@ -125,16 +136,19 @@ class UIDiamondPainting:
         self.processedImg.save(bio, format="PNG")
         self.window["previewImg"].update(data=bio.getvalue())
         self.window["alphaValue"].update(values=self.logic.possibleColorValuesForAlpha)
+        self.window["alphaValue"].update(self.UIValueList["alphaValue"])
 
     def evt_generateDiamondPainting(self):
         self.diamondImg = self.logic.generateDiamondPainting(self.processedImg, self.UIValueList["diamondAlphabet"],
                                                              self.UIValueList["alphaValue"],
                                                              self.selectedFnt, int(self.UIValueList["diamondSize"]),
-                                                             self.UIValueList["diamondShape"] == "Round")
+                                                             self.UIValueList["diamondShape"] == "Round",
+                                                             int(self.UIValueList["spaceBetween"]),
+                                                             int(self.UIValueList["outlineWidth"]))
         bio = BytesIO()
         self.diamondImg.save(bio, format="PNG")
         self.window["previewImgDiamond"].update(data=bio.getvalue())
-        self.diamondImg.save("/tmp/diamondPainting.png", format="PNG")
+        self.diamondImg.save("/tmp/diamondPainting.png", format="PNG", dpi=(96,96))
         self.tableImage = self.logic.generateTable(self.selectedFnt, self.UIValueList["diamondAlphabet"],
                                                    int(self.UIValueList["diamondSize"]))
         bio = BytesIO()
@@ -172,6 +186,10 @@ class UIDiamondPainting:
 
             self.evt_updateSliderTexts()
 
+            if evt == "tabLeft":
+                #tabLeft
+                pass
+                
             # update font path/name
             if evt == "fontSelect":
                 self.evt_updateFont()
@@ -179,13 +197,25 @@ class UIDiamondPainting:
             if evt == "fontVariant":
                 self.evt_updateFontVariant()
 
+            if evt == "srcImgCustomHeight" or evt == "srcImgCustomWidth":
+                self.UIValueList["srcImgCustomSizeRatio"] = int(self.UIValueList["srcImgCustomHeight"]) / int(self.UIValueList["srcImgCustomWidth"])
+                self.window["srcImgCustomSizeRatio"].update(value=self.UIValueList["srcImgCustomSizeRatio"])
+
+            if evt == "srcImgResizePercent" and self.UIValueList["srcImgResizePercent"] == "Custom":
+                self.window["srcImgCustom_Lbl1"].update(visible=True)
+                self.window["srcImgCustomWidth"].update(visible=True)
+                self.window["srcImgCustom_Lbl2"].update(visible=True)
+                self.window["srcImgCustomHeight"].update(visible=True)
+                self.window["srcImgCustom_Lbl3"].update(visible=True)
+                self.window["srcImgCustomSizeRatio"].update(visible=True)
+
             # react on image load
             if (evt == "srcImg" or evt == "srcImgResize" or
                 evt == "srcImgResizePercent" or
                 evt == "srcImgResizeIgnoreRatio" or
                 evt == "srcImgCustomWidth" or
                 evt == "srcImgCustomHeight" or
-                evt == "srcImgCustomSizeRation" or
+                evt == "srcImgCustomSizeRatio" or
                 evt == "rModeInput") and \
                     self.UIValueList["srcImg"] != "":
                 self.evt_processInputImg()

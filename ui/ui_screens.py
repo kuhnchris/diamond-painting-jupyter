@@ -33,12 +33,12 @@ left_column = [
                     key="srcImgResizeIgnoreRatio", default=False, visible=False)
     ],
     [
-        sg.Text("Custom size", size=(25, 1), visible=False),
-        sg.In(enable_events=True, key="srcImgCustomWidth", size=(4, 1), disabled=False, visible=False),
-        sg.Text("x", size=(1, 1), visible=False),
-        sg.In(enable_events=True, key="srcImgCustomHeight", size=(4, 1), disabled=False, visible=False),
-        sg.Text("/", size=(1, 1), visible=False),
-        sg.In(enable_events=False, key="srcImgCustomSizeRatio", size=(6, 1), disabled=True, visible=False),
+        sg.Text("Custom size", size=(25, 1), visible=True, key="srcImgCustom_Lbl1"),
+        sg.In(enable_events=True, key="srcImgCustomWidth", size=(4, 1), disabled=False, visible=True),
+        sg.Text("x", size=(1, 1), visible=True, key="srcImgCustom_Lbl2"),
+        sg.In(enable_events=True, key="srcImgCustomHeight", size=(4, 1), disabled=False, visible=True),
+        sg.Text("/", size=(1, 1), visible=True, key="srcImgCustom_Lbl3"),
+        sg.In(enable_events=False, key="srcImgCustomSizeRatio", size=(6, 1), disabled=True, visible=True),
     ],
     [
         sg.Text("Resize Mode", size=(25, 1)),
@@ -97,13 +97,20 @@ left_column_pageDGen = [
     [sg.Text("Font Preview", size=(25, 1)),
      sg.Image(key="previewText")],
     [sg.Text("Diamond Size (in mm)", size=(25, 1)),
-     sg.Slider((1, 64), 28, orientation="h", enable_events=True,
+     sg.Slider((1, 64), 32, orientation="h", enable_events=True,
                key="diamondSize", resolution=1, disable_number_display=True),
-     sg.Text("28", key="diamondSizeDisplay", size=(3, 1))],
+     sg.Text("32", key="diamondSizeDisplay", size=(3, 1))],
     [sg.Text("Diamond Shape", size=(25, 1)),
      sg.DropDown(["Round", "Square"], default_value="Round",
                  key="diamondShape", enable_events=True)],
-    [sg.Button(button_text="Generate", enable_events=True, key='generate')]
+    [sg.Text("Space between", size=(25, 1)),
+     sg.Slider((0, 10), 1, orientation="h", enable_events=True,
+               key="spaceBetween", resolution=1, disable_number_display=True),
+     sg.Text("1", key="spaceBetweenDisplay", size=(3, 1))],
+    [sg.Text("Outline", size=(25, 1)),
+     sg.Slider((0, 10), 1, orientation="h", enable_events=True,
+               key="outlineWidth", resolution=1, disable_number_display=True),
+     sg.Text("1", key="outlineWidthDisplay", size=(3, 1))],
 ]
 
 left_column_pageTable = [
@@ -149,9 +156,9 @@ menu = [['&File', ['&Open', '&Save', '---', 'E&xit']], ['&Help', '&About']]
 layout = [
     [
         sg.Menu(menu, key="Menu"),
-        sg.Column([[sg.TabGroup([[tab1_left, tab3_left, tab2_left, tab4_left, tab5_left]])]],
+        sg.Column([[sg.TabGroup([[tab1_left, tab3_left, tab2_left, tab4_left, tab5_left]],enable_events=True, key="tabLeft")],[sg.Button(button_text="Generate", enable_events=True, key='generate')]],
                   size=(650, 650), expand_y=True),
         sg.VSeperator(),
-        sg.Column([[sg.TabGroup([[tab1_right, tab2_right, tab3_right, tab4_right, tab5_right]])]], size=(650, 650)),
+        sg.Column([[sg.TabGroup([[tab1_right, tab2_right, tab3_right, tab4_right, tab5_right]],key="tabRight",enable_events=True)]], size=(650, 650)),
     ]
 ]
